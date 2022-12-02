@@ -17,15 +17,19 @@ When you click the **Knit** button a document will be generated that includes bo
 ```{r}
 library(dplyr)
 library(tidyr)
+```
 
-food <- fread("en.openfoodfacts.org.products.csv", nrows = 100000)
+```{r}
+data <- read.csv("data_project.csv", sep = ";")
+print(data)
 
-food_sans_na <- food %>%
-  select(product_name, `energy-kcal_100g`, proteins_100g, sugars_100g, fat_100g, `saturated-fat_100g`, fiber_100g, nutriscore_grade, nutriscore_score, salt_100g, sodium_100g, `vitamin-a_100g`, calcium_100g, `vitamin-c_100g`) %>%
-  drop_na()
+data_of_interest = data[c(3:5)]
 
-dim(food_sans_na)
-write.csv2(food_sans_na, "data_project.csv")
+data_of_interest$energy.kcal_100g <- strtoi(data_of_interest$energy.kcal_100g)
+print(data_of_interest)
+
+hist(data_of_interest$energy.kcal_100g,freq=FALSE,xlab="Energy in kcal for 100g",main="Histogramme")
+
 
 ```
 

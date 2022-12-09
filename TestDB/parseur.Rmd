@@ -4,21 +4,41 @@ output: html_document
 date: "2022-11-25"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
 ```{r}
+library(GGally)
+library(ggplot2)
+library(FactoMineR)
+library(cluster)
+library(factoextra)
+library(heatmaply)
 library(dplyr)
 library(tidyr)
+
+data <-read.csv("data_project.csv", sep=";")
+print(data)
 ```
 
+Matrice de corrélation
+```{r}
+
+#ggpairs(data[c(3:13)])
+gradient_col <- ggplot2::scale_fill_gradient2(
+   low = "blue", high = "red", 
+    midpoint = 0.5, limits = c(0, 1)
+  )
+
+heatmaply_cor(
+  cor(data[c(3:13)]),
+  scale_fill_gradient=gradient_col,
+  cellnote=round(cor(data[c(3:13)]),2),
+  cellnote_color = "auto",
+  cellnote_textposition = "middle center",
+  cellnote_size = 6,
+  show_dendrogram=c(FALSE,FALSE),
+)
+```
+
+Analyse des différentes variables
 ```{r}
 data <- read.csv("data_project.csv", sep = ";")
 print(data)
@@ -43,16 +63,11 @@ percentage <- round(100*mytable/sum(mytable),digits = 2)
 lbls <- paste(names(mytable), "\n", percentage, "%", sep="")
 pie(mytable, labels = lbls,
    main="Nutriscore grade repartition")
-
-
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+Variances 
+```{r}
+sapply(data[c(3:13)], var)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+

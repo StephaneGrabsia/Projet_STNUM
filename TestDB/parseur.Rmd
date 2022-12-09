@@ -22,16 +22,43 @@ library(tidyr)
 ```{r}
 data <- read.csv("data_project.csv", sep = ";")
 print(data)
+```
 
-data_of_interest = data[c(3:5)]
-
-data_of_interest$energy.kcal_100g <- strtoi(data_of_interest$energy.kcal_100g)
-print(data_of_interest)
-
-hist(data_of_interest$energy.kcal_100g,freq=FALSE,xlab="Energy in kcal for 100g",main="Histogramme")
-
+```{r}
+sodium_100g <- data$sodium_100g
+hist(sodium_100g,freq=TRUE,xlab="Sodium for 100g", main="Histogramme")
+boxplot(data[,c("sodium_100g")],main="Boites à moustaches")
 
 ```
+```{r}
+salt_100g <- data$salt_100g
+hist(salt_100g,freq=TRUE,xlab="Salt for 100g",main="Histogramme")
+boxplot(salt_100g,main="Boites à moustaches")
+```
+
+Nous remarquons que deux valeurs semblent incohérentes. En effet la boîte à moustache nous montre que deux valeurs ont un taux de sel supérieur à 100/100g. 
+
+```{r}
+values_salt <- data[data$salt_100g>100,]$product_name
+print(values_salt)
+```
+Nous allons donc retirer de notre base de données ces deux valeurs : Marie sharps orange pulp habanero hot sauce et Steak seasoning. 
+
+```{r}
+salt <- data[data$salt_100g<100,]$salt_100g
+boxplot(salt,main="Boites à moustaches")
+
+hist(salt,freq=TRUE,xlab="Salt for 100g",main="Histogramme", breaks=100)
+
+```
+```{r}
+sodium <- data[data$sodium_100g<100,]$sodium_100g
+boxplot(sodium,main="Boites à moustaches")
+
+hist(sodium,freq=TRUE,xlab="Sodium for 100g",main="Histogramme", breaks=100)
+```
+
+Près de 3000 produits ne contiennent pas du tout de sel. 
 
 ## Including Plots
 

@@ -11,6 +11,8 @@ library(FactoMineR)
 library(cluster)
 library(factoextra)
 library(heatmaply)
+library(dplyr)
+library(tidyr)
 
 data <-read.csv("data_project.csv", sep=";")
 print(data)
@@ -18,6 +20,7 @@ print(data)
 
 Matrice de corrélation
 ```{r}
+
 #ggpairs(data[c(3:13)])
 gradient_col <- ggplot2::scale_fill_gradient2(
    low = "blue", high = "red", 
@@ -33,6 +36,18 @@ heatmaply_cor(
   cellnote_size = 6,
   show_dendrogram=c(FALSE,FALSE),
 )
+```
+
+```{r}
+data <- read.csv("data_project.csv", sep = ";")
+print(data)
+
+data_of_interest = data[c(3:5)]
+
+data_of_interest$energy.kcal_100g <- strtoi(data_of_interest$energy.kcal_100g)
+print(data_of_interest)
+
+hist(data_of_interest$energy.kcal_100g,freq=FALSE,xlab="Energy in kcal for 100g",main="Histogramme")
 ```
 Variances 
 ```{r}

@@ -4,27 +4,84 @@ output: html_document
 date: "2022-11-25"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
 ```{r}
+library(GGally)
+library(ggplot2)
+library(FactoMineR)
+library(cluster)
+library(factoextra)
+library(heatmaply)
 library(dplyr)
 library(tidyr)
+
+data <-read.csv("data_project.csv", sep=";")
+print(data)
 ```
 
+Matrice de corrélation
+```{r}
+
+#ggpairs(data[c(3:13)])
+gradient_col <- ggplot2::scale_fill_gradient2(
+   low = "blue", high = "red", 
+    midpoint = 0.5, limits = c(0, 1)
+  )
+
+heatmaply_cor(
+  cor(data[c(3:13)]),
+  scale_fill_gradient=gradient_col,
+  cellnote=round(cor(data[c(3:13)]),2),
+  cellnote_color = "auto",
+  cellnote_textposition = "middle center",
+  cellnote_size = 6,
+  show_dendrogram=c(FALSE,FALSE),
+)
+```
+
+Analyse des différentes variables
 ```{r}
 data <- read.csv("data_project.csv", sep = ";")
 print(data)
+```
 
-data_of_interest = data[c(3:5)]
+```{r}
+sodium_100g <- data$sodium_100g
+hist(sodium_100g,freq=TRUE,xlab="Sodium for 100g", main="Histogramme")
+boxplot(data[,c("sodium_100g")],main="Boites à moustaches")
 
+```
+```{r}
+salt_100g <- data$salt_100g
+hist(salt_100g,freq=TRUE,xlab="Salt for 100g",main="Histogramme")
+boxplot(salt_100g,main="Boites à moustaches")
+```
+
+Nous remarquons que deux valeurs semblent incohérentes. En effet la boîte à moustache nous montre que deux valeurs ont un taux de sel supérieur à 100/100g. 
+
+
+```{r}
+values_salt <- data[data$salt_100g>100,]$product_name
+print(values_salt)
+```
+Nous allons donc retirer de notre base de données ces deux valeurs : Marie sharps orange pulp habanero hot sauce et Steak seasoning. 
+
+```{r}
+salt <- data[data$salt_100g<100,]$salt_100g
+boxplot(salt,main="Boites à moustaches")
+
+hist(salt,freq=TRUE,xlab="Salt for 100g",main="Histogramme", breaks=100)
+
+```
+```{r}
+sodium <- data[data$sodium_100g<100,]$sodium_100g
+boxplot(sodium,main="Boites à moustaches")
+
+hist(sodium,freq=TRUE,xlab="Sodium for 100g",main="Histogramme", breaks=100)
+```
+
+Près de 3000 produits ne contiennent pas du tout de sel. 
+
+## Including Plots
 hist(as.double(data_of_interest$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
 hist(as.double(data_of_interest$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
 hist(as.double(data_of_interest$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
@@ -43,9 +100,8 @@ percentage <- round(100*mytable/sum(mytable),digits = 2)
 lbls <- paste(names(mytable), "\n", percentage, "%", sep="")
 pie(mytable, labels = lbls,
    main="Nutriscore grade repartition")
-
-
 ```
+
 
 Analyse Energie:
 ```{r}
@@ -82,6 +138,10 @@ You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
 plot(pressure)
+
+Variances 
+```{r}
+sapply(data[c(3:13)], var)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+

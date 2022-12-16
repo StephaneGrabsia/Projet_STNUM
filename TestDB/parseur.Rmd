@@ -4,8 +4,15 @@ output: html_document
 date: "2022-11-25"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+library(GGally)
+library(ggplot2)
+library(FactoMineR)
+library(cluster)
+library(factoextra)
+library(heatmaply)
+library(dplyr)
+library(tidyr)
 ```
 
 ```{r}
@@ -25,9 +32,31 @@ max_vit_a <- max(vitamine_a)
 hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks=100)
 boxplot(vitamine_a,main="Boite à moustaches vitamine C")
 ```
-Vitamines A avec filtre :
 
+Matrice de corrélation
 ```{r}
+
+#ggpairs(data[c(3:13)])
+gradient_col <- ggplot2::scale_fill_gradient2(
+   low = "blue", high = "red", 
+    midpoint = 0.5, limits = c(0, 1)
+  )
+
+heatmaply_cor(
+  cor(data[c(3:13)]),
+  scale_fill_gradient=gradient_col,
+  cellnote=round(cor(data[c(3:13)]),2),
+  cellnote_color = "auto",
+  cellnote_textposition = "middle center",
+  cellnote_size = 6,
+  show_dendrogram=c(FALSE,FALSE),
+)
+```
+
+
+Analyse des différentes variables
+```{r}
+
 vitamine_a <- data[data$vitamin.a_100g<100,]$vitamin.a_100g
 without_vit_a <- data[data$vitamin.a_100g==0,]$vitamin.a_100g
 max_vit_a <- max(vitamine_a)
@@ -54,8 +83,94 @@ hist(vitamine_c,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine C",breaks
 boxplot(vitamine_c,main="Boite à moustaches vitamine C")
 ```
 
-Calcium sans filtre :
+```{r}
+sodium_100g <- data$sodium_100g
+hist(sodium_100g,freq=TRUE,xlab="Sodium for 100g", main="Histogramme")
+boxplot(data[,c("sodium_100g")],main="Boites à moustaches")
 
+```
+```{r}
+salt_100g <- data$salt_100g
+hist(salt_100g,freq=TRUE,xlab="Salt for 100g",main="Histogramme")
+boxplot(salt_100g,main="Boites à moustaches")
+```
+
+Nous remarquons que deux valeurs semblent incohérentes. En effet la boîte à moustache nous montre que deux valeurs ont un taux de sel supérieur à 100/100g. 
+
+
+```{r}
+values_salt <- data[data$salt_100g>100,]$product_name
+print(values_salt)
+```
+Nous allons donc retirer de notre base de données ces deux valeurs : Marie sharps orange pulp habanero hot sauce et Steak seasoning. 
+
+```{r}
+salt <- data[data$salt_100g<100,]$salt_100g
+boxplot(salt,main="Boites à moustaches")
+
+hist(salt,freq=TRUE,xlab="Salt for 100g",main="Histogramme", breaks=100)
+
+```
+```{r}
+sodium <- data[data$sodium_100g<100,]$sodium_100g
+boxplot(sodium,main="Boites à moustaches")
+
+hist(sodium,freq=TRUE,xlab="Sodium for 100g",main="Histogramme", breaks=100)
+```
+
+Près de 3000 produits ne contiennent pas du tout de sel. 
+
+## Including Plots
+hist(as.double(data_of_interest$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
+hist(as.double(data_of_interest$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
+hist(as.double(data_of_interest$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
+
+plot(ecdf(data_of_interest$energy.kcal_100g),main="Energy")
+plot(ecdf(data_of_interest$proteins_100g),main="Proteins")
+plot(ecdf(data_of_interest$sugars_100g),main="Sugar")
+
+boxplot(data_of_interest[,c("energy.kcal_100g")],main="Boites à moustache énergie")
+boxplot(data_of_interest[,c("proteins_100g","sugars_100g")],main="Boites à moustaches des deux variables")
+
+mytable <- table(data$nutriscore_grade)
+options(digits=4)
+percentage <- round(100*mytable/sum(mytable),digits = 2)
+
+lbls <- paste(names(mytable), "\n", percentage, "%", sep="")
+pie(mytable, labels = lbls,
+   main="Nutriscore grade repartition")
+```
+
+Analyse Energie:
+```{r}
+strange_products_energy = data[data_of_interest$energy.kcal_100g>1000,]
+strange_products_name_energy <- strange_products_energy$product_name
+print(strange_products_energy)
+clean_data_energy = data[data_of_interest$energy.kcal_100g<1000,]
+hist(as.double(clean_data_energy$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
+```
+Il n'y a pas d'aliments bizarres concernant la proteine.
+
+Analyse Proteins:
+```{r}
+hist(as.double(data_of_interest$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
+strange_products_proteins = data[data_of_interest$proteins_100g>80,]
+strange_products_name_proteins <- strange_products_proteins$product_name
+print(strange_products_proteins)
+clean_data_proteins = data[data_of_interest$proteins_100g<80,]
+hist(as.double(clean_data_proteins$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
+```
+Analyse Sucre:
+```{r}
+hist(as.double(data_of_interest$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
+strange_products_sugars = data[data_of_interest$sugars_100g>80,]
+strange_products_name_sugars <- strange_products_sugars$product_name
+print(strange_products_sugars)
+clean_data_sugars = data[data_of_interest$sugars_100g<80,]
+hist(as.double(clean_data_proteins$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
+```
+
+Calcium sans filtre :
 ```{r}
 calcium <- data$calcium_100g
 max_calcium <- max(calcium)
@@ -71,3 +186,8 @@ max_calcium <- max(calcium)
 hist(calcium,freq=TRUE,xlab="calcium",main="Histogramme calcium",breaks=100,xlim = c(0,max_calcium))
 boxplot(calcium,main="Boite à moustaches calcium")
 ```
+Variances 
+```{r}
+sapply(data[c(3:13)], var)
+```
+

@@ -90,8 +90,8 @@ plot(ecdf(data_of_interest$energy.kcal_100g),main="Energy")
 plot(ecdf(data_of_interest$proteins_100g),main="Proteins")
 plot(ecdf(data_of_interest$sugars_100g),main="Sugar")
 
-boxplot(data_of_interest[,c("energy.kcal_100g")],main="Boites à moustaches des trois variables")
-boxplot(data_of_interest[,c("proteins_100g","sugars_100g")],main="Boites à moustaches des trois variables")
+boxplot(data_of_interest[,c("energy.kcal_100g")],main="Boites à moustache énergie")
+boxplot(data_of_interest[,c("proteins_100g","sugars_100g")],main="Boites à moustaches des deux variables")
 
 mytable <- table(data$nutriscore_grade)
 options(digits=4)
@@ -101,6 +101,43 @@ lbls <- paste(names(mytable), "\n", percentage, "%", sep="")
 pie(mytable, labels = lbls,
    main="Nutriscore grade repartition")
 ```
+
+
+Analyse Energie:
+```{r}
+strange_products_energy = data[data_of_interest$energy.kcal_100g>1000,]
+strange_products_name_energy <- strange_products_energy$product_name
+print(strange_products_energy)
+clean_data_energy = data[data_of_interest$energy.kcal_100g<1000,]
+hist(as.double(clean_data_energy$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
+```
+Il n'y a pas d'aliments bizarres concernant la proteine.
+
+Analyse Proteins:
+```{r}
+hist(as.double(data_of_interest$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
+strange_products_proteins = data[data_of_interest$proteins_100g>80,]
+strange_products_name_proteins <- strange_products_proteins$product_name
+print(strange_products_proteins)
+clean_data_proteins = data[data_of_interest$proteins_100g<80,]
+hist(as.double(clean_data_proteins$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
+```
+Analyse Sucre:
+```{r}
+hist(as.double(data_of_interest$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
+strange_products_sugars = data[data_of_interest$sugars_100g>80,]
+strange_products_name_sugars <- strange_products_sugars$product_name
+print(strange_products_sugars)
+clean_data_sugars = data[data_of_interest$sugars_100g<80,]
+hist(as.double(clean_data_proteins$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
 
 Variances 
 ```{r}

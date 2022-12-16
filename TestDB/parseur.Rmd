@@ -13,9 +13,24 @@ library(factoextra)
 library(heatmaply)
 library(dplyr)
 library(tidyr)
+```
 
-data <-read.csv("data_project.csv", sep=";")
-print(data)
+```{r}
+data <- read.csv("data_project.csv",sep=";",dec=".")
+```
+
+```{r}
+nutriscore_score <- data$nutriscore_score
+hist(nutriscore_score,freq=TRUE,xlab="nutriscore",main="Histogramme nustriscore",breaks=100)
+boxplot(nutriscore_score,main="Boite à moustaches nutriscore")
+```
+Vitamines A sans filtre :
+
+```{r}
+vitamine_a <- data$vitamin.a_100g
+max_vit_a <- max(vitamine_a)
+hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks=100)
+boxplot(vitamine_a,main="Boite à moustaches vitamine C")
 ```
 
 Matrice de corrélation
@@ -38,10 +53,34 @@ heatmaply_cor(
 )
 ```
 
+
 Analyse des différentes variables
 ```{r}
-data <- read.csv("data_project.csv", sep = ";")
-print(data)
+
+vitamine_a <- data[data$vitamin.a_100g<100,]$vitamin.a_100g
+without_vit_a <- data[data$vitamin.a_100g==0,]$vitamin.a_100g
+max_vit_a <- max(vitamine_a)
+hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks=100)
+boxplot(vitamine_a,main="Boite à moustaches vitamine A")
+```
+
+Vitamines C sans filtre :
+
+```{r}
+vitamine_c <- data$vitamin.c_100g
+max_vit_c <- max(vitamine_c)
+hist(vitamine_c,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine C",breaks=100)
+boxplot(vitamine_c,main="Boite à moustaches vitamine C")
+```
+
+Vitamines C avec filtre :
+
+```{r}
+vitamine_c <- data[data$vitamin.c_100g<100,]$vitamin.c_100g
+without_vit_c <- data[data$vitamin.c_100g==0,]$vitamin.c_100g
+max_vit_c <- max(vitamine_c)
+hist(vitamine_c,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine C",breaks=100)
+boxplot(vitamine_c,main="Boite à moustaches vitamine C")
 ```
 
 ```{r}
@@ -102,7 +141,6 @@ pie(mytable, labels = lbls,
    main="Nutriscore grade repartition")
 ```
 
-
 Analyse Energie:
 ```{r}
 strange_products_energy = data[data_of_interest$energy.kcal_100g>1000,]
@@ -132,16 +170,24 @@ clean_data_sugars = data[data_of_interest$sugars_100g<80,]
 hist(as.double(clean_data_proteins$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
 ```
 
-## Including Plots
+Calcium sans filtre :
+```{r}
+calcium <- data$calcium_100g
+max_calcium <- max(calcium)
+hist(calcium,freq=TRUE,xlab="calcium",main="Histogramme calcium",breaks=100,xlim = c(0,max_calcium))
+boxplot(calcium,main="Boite à moustaches calcium")
+```
 
-You can also embed plots, for example:
+Calcium avec filtre :
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-
+```{r}
+calcium <- data[data$calcium_100g<10,]$calcium_100g
+max_calcium <- max(calcium)
+hist(calcium,freq=TRUE,xlab="calcium",main="Histogramme calcium",breaks=100,xlim = c(0,max_calcium))
+boxplot(calcium,main="Boite à moustaches calcium")
+```
 Variances 
 ```{r}
 sapply(data[c(3:13)], var)
 ```
-
 

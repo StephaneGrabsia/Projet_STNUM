@@ -20,6 +20,7 @@ print(data)
 
 Matrice de corrélation
 ```{r}
+cleaned_data = data[ (data$vitamin.c_100g<100) & (data$energy.kcal_100g<1000) & (data$proteins_100g<100) & (data$sugars_100g < 80) & (data$fat_100g < 100) & (data$saturated.fat_100g < 100) & (data$fiber_100g <100) & (data$salt_100g < 100) & (data$sodium_100g <100) & (data$vitamin.a_100g < 100) & (data$calcium_100g < 10), ]
 
 #ggpairs(data[c(3:13)])
 gradient_col <- ggplot2::scale_fill_gradient2(
@@ -28,9 +29,9 @@ gradient_col <- ggplot2::scale_fill_gradient2(
   )
 
 heatmaply_cor(
-  cor(data[c(3:13)]),
+  cor(cleaned_data[c(3:14)]),
   scale_fill_gradient=gradient_col,
-  cellnote=round(cor(data[c(3:13)]),2),
+  cellnote=round(cor(cleaned_data[c(3:14)]),2),
   cellnote_color = "auto",
   cellnote_textposition = "middle center",
   cellnote_size = 6,
@@ -40,9 +41,6 @@ heatmaply_cor(
 
 Analyse des différentes variables
 ```{r}
-data <- read.csv("data_project.csv", sep = ";")
-print(data)
-
 data_of_interest = data[c(3:5)]
 
 hist(as.double(data_of_interest$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
@@ -67,7 +65,100 @@ pie(mytable, labels = lbls,
 
 Variances 
 ```{r}
-sapply(data[c(3:13)], var)
+sapply(cleaned_data[c(3:14)], var)
+```
+ACP
+```{r}
+out_acp <- PCA(cleaned_data[,c(3:10, 12:14)],scale.unit=TRUE,ncp=11,graph=FALSE)
+summary(out_acp)
 ```
 
+Valeurs propres
+```{r}
+val_prop <- out_acp$eig[,"eigenvalue"]
+cp <- 1:length(val_prop)
+vp <- data.frame(cp=cp,val_prop=val_prop)
+
+ggplot(data=vp,aes(x=cp,y=val_prop, fill=val_prop))+
+  geom_bar(stat="identity", width = 0.7)+
+  ggtitle("Eboulis des valeurs propres")+
+  xlab("Nombre de composantes principales")+
+  ylab("Valeurs propres")+
+  scale_x_continuous(breaks=cp)
+
+```
+3 composantes principales : 1, 2 et 3
+
+Inertie
+```{r}
+fviz_eig(out_acp, addlabels = TRUE, ylim = c(0, 50), barfill = "navyblue",
+  barcolor = "navyblue" ,linecolor = "black" , hjust=0)
+
+```
+
+Cercle de corrélation
+```{r}
+plot.PCA(out_acp,shadow=TRUE,cex=0.8,axes=c(1,2),choix="var",new.plot=TRUE,
+         title="Cercle des corrélations", gradient.cols = c("blue", "red"),)
+
+```
+```{r}
+fviz_pca_var(out_acp, axes = c(1,2),
+             col.var = "cos2",
+             gradient.cols = c("navyblue","blue"),
+             repel = TRUE)
+```
+```{r}
+fviz_pca_var(out_acp, axes = c(2,3),
+             col.var = "cos2",
+             gradient.cols = c("navyblue","blue"),
+             repel = TRUE)
+```
+```{r}
+fviz_pca_var(out_acp, axes = c(1,3),
+             col.var = "cos2",
+             gradient.cols = c("navyblue","blue"),
+             repel = TRUE)
+```
+
+
+Qualité et représentation des ingrédients (à faire)
+
+library("corrplot")
+corrplot(data$contrib(c[3:14]), is.corr=FALSE)
+
+Projection de l'ACP
+```{r}
+plot.PCA(out_acp,shadow=TRUE,cex=2,axes=c(1,2),choix="ind",label="none",new.plot=TRUE, title="Projection des individus")
+```
+
+
+
+Clustering
+
+```{r}
+cah_ward <- agnes(cleaned_data[c(1:200),c(3:10,12:14)],metric="euclidean",stand=TRUE,method="ward")
+plot(as.dendrogram(cah_ward),main="Ward")
+
+ei <- data.frame(k=2:dim(cleaned_data[c(1:200),c(3:10,12:14)])[1],height=sort(cah_ward$height,decreasing=TRUE))
+
+ggplot(data=ei,aes(x=k,y=height))+
+  geom_bar(stat="identity",fill="steelblue")+
+  theme_minimal()+
+  ggtitle("Gain d'inertie inter-classes lors du passage de (k-1) à k classes")+
+  xlab("k")+
+  ylab("Indice d'aggrégation")+
+  scale_x_continuous(breaks=2:dim(cleaned_data[c(1:200),c(3:10,12:14)])[1])
+```
+
+Kmeans
+```{r}
+library(FactoMineR)
+library(factoextra)
+library(cluster)
+data_nor <- scale(cleaned_data[,c(3:10,12:14)],center=TRUE,scale=TRUE)
+cluster_kmeans_3cl <- kmeans(data_nor,centers=5,nstart=20)
+print(cluster_kmeans_3cl)
+fviz_cluster(cluster_kmeans_3cl, cleaned_data[,c(3:10,12:14)],palette = c("#009999", "#0000FF", "#FF2400", "#FF6EC7", "#6D071A"))
+```
 

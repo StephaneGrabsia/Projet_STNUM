@@ -15,28 +15,17 @@ library(dplyr)
 library(tidyr)
 ```
 
+# Chargement des données
 ```{r}
 data <- read.csv("data_project.csv",sep=";",dec=".")
 ```
 
-```{r}
-nutriscore_score <- data$nutriscore_score
-hist(nutriscore_score,freq=TRUE,xlab="nutriscore",main="Histogramme nustriscore",breaks=100)
-boxplot(nutriscore_score,main="Boite à moustaches nutriscore")
-```
-Vitamines A sans filtre :
+# Statistiques descriptives
 
-```{r}
-vitamine_a <- data$vitamin.a_100g
-max_vit_a <- max(vitamine_a)
-hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks=100)
-boxplot(vitamine_a,main="Boite à moustaches vitamine C")
-```
+##Analyse générale
 
 Matrice de corrélation
 ```{r}
-
-#ggpairs(data[c(3:13)])
 gradient_col <- ggplot2::scale_fill_gradient2(
    low = "blue", high = "red", 
     midpoint = 0.5, limits = c(0, 1)
@@ -54,9 +43,21 @@ heatmaply_cor(
 ```
 
 
-Analyse des différentes variables
+Variances 
 ```{r}
+sapply(data[c(3:13)], var)
+```
 
+## Analyse des différentes variables
+
+### Vitamine A
+```{r}
+vitamine_a <- data$vitamin.a_100g
+max_vit_a <- max(vitamine_a)
+hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks=100)
+boxplot(vitamine_a,main="Boite à moustaches vitamine A")
+```
+```{r}
 vitamine_a <- data[data$vitamin.a_100g<100,]$vitamin.a_100g
 without_vit_a <- data[data$vitamin.a_100g==0,]$vitamin.a_100g
 max_vit_a <- max(vitamine_a)
@@ -64,6 +65,16 @@ hist(vitamine_a,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine A",breaks
 boxplot(vitamine_a,main="Boite à moustaches vitamine A")
 ```
 
+### Nutriscore
+```{r}
+nutriscore_score <- data$nutriscore_score
+hist(nutriscore_score,freq=TRUE,xlab="nutriscore",main="Histogramme nustriscore",breaks=100)
+boxplot(nutriscore_score,main="Boite à moustaches nutriscore")
+```
+
+Analyse des différentes variables
+
+### Vitamine C
 Vitamines C sans filtre :
 
 ```{r}
@@ -83,12 +94,15 @@ hist(vitamine_c,freq=TRUE,xlab="nutriscore",main="Histogramme vitamine C",breaks
 boxplot(vitamine_c,main="Boite à moustaches vitamine C")
 ```
 
+### Sodium 
 ```{r}
 sodium_100g <- data$sodium_100g
 hist(sodium_100g,freq=TRUE,xlab="Sodium for 100g", main="Histogramme")
 boxplot(data[,c("sodium_100g")],main="Boites à moustaches")
 
 ```
+
+### Sel
 ```{r}
 salt_100g <- data$salt_100g
 hist(salt_100g,freq=TRUE,xlab="Salt for 100g",main="Histogramme")
@@ -120,6 +134,9 @@ hist(sodium,freq=TRUE,xlab="Sodium for 100g",main="Histogramme", breaks=100)
 
 Près de 3000 produits ne contiennent pas du tout de sel. 
 
+### Energy, Proteine et Sucre
+
+```{r}
 ## Including Plots
 hist(as.double(data_of_interest$energy.kcal_100g),freq=TRUE,xlab="Energy in kcal for 100g",main="Histogramme", breaks = 100)
 hist(as.double(data_of_interest$proteins_100g),freq=TRUE,xlab="Proteins for 100g",main="Histogramme", breaks = 100)
@@ -170,6 +187,8 @@ clean_data_sugars = data[data_of_interest$sugars_100g<80,]
 hist(as.double(clean_data_proteins$sugars_100g),freq=TRUE,xlab="Sugars for 100g",main="Histogramme", breaks = 100)
 ```
 
+"
+### Calcium 
 Calcium sans filtre :
 ```{r}
 calcium <- data$calcium_100g
@@ -186,8 +205,76 @@ max_calcium <- max(calcium)
 hist(calcium,freq=TRUE,xlab="calcium",main="Histogramme calcium",breaks=100,xlim = c(0,max_calcium))
 boxplot(calcium,main="Boite à moustaches calcium")
 ```
-Variances 
+
+### Analyse Louise
 ```{r}
-sapply(data[c(3:13)], var)
+hist(as.numeric(data$fat_100g),
+     freq=FALSE,
+     breaks=50,
+     xlab="fat",
+     main="Histogramme")
+
+boxplot(as.numeric(data$fat_100g),main="Boite à moustaches fat")
+
+fat<-data[data$fat_100g>0,]$fat_100g
+hist(as.numeric(fat) ,
+     freq=FALSE,
+     breaks=50,
+     xlab="fat (with no 0)",
+     main="Histogramme")
 ```
+
+```{r}
+hist(as.numeric(data$saturated.fat_100g) ,
+     freq=FALSE,
+     breaks=50,
+     xlab="saturated fat",
+     main="Histogramme")
+
+boxplot(as.numeric(data$saturated.fat_100g),main="Boite à moustaches saturated fat")
+
+saturated.fat<-data[data$saturated.fat_100g>0,]$saturated.fat_100g
+hist(as.numeric(saturated.fat) ,
+     freq=FALSE,
+     breaks=50,
+     xlab="saturated fat (with no 0)",
+     main="Histogramme")
+```
+
+
+```{r}
+hist(as.numeric(data$fiber_100g) ,
+     freq=FALSE,
+     breaks=50,
+     xlab="fiber",
+     main="Histogramme")
+
+boxplot(as.numeric(data$fiber_100g),main="Boite à moustaches fiber")
+
+fiber<-data[data$fiber_100g>0,]$fiber_100g
+hist(as.numeric(fiber) ,
+     freq=FALSE,
+     breaks=50,
+     xlab="fiber (with no 0)",
+     main="Histogramme")
+```
+
+```{r}
+strange_products_fiber = data[data$fiber_100g>90,]
+strange_products_name_fiber <- strange_products_fiber$product_name
+print(strange_products_fiber)
+```
+
+
+# Nettoyage des données:
+
+```{r}
+cleaned_data = data[data$vitamin.c_100g<100 & data$vitamin.c_100g<100 & data$energy.kcal_100g<1000 & data$proteins_100g<100 & data$sugars_100g <100 & data$fat_100g < 100 & data$saturated.fat_100g < 100 & data$fiber_100g <100 & data$salt_100g < 100 & data$sodium_100g <100 & data$vitamin.a_100g < 100 & data$vitamin.c_100g < 100 & data$calcium_100g < 10, ]
+```
+
+```{r}
+ 
+plot(as.dendrogram(agnes(data[,c(3:10,12:14)],metric="euclidean",stand=TRUE,method="single")),main="Single linkage")
+```
+
 

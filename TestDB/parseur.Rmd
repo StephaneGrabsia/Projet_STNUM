@@ -269,12 +269,10 @@ print(strange_products_fiber)
 # Nettoyage des données:
 
 ```{r}
-cleaned_data = data[data$vitamin.c_100g<100 & data$vitamin.c_100g<100 & data$energy.kcal_100g<1000 & data$proteins_100g<100 & data$sugars_100g <100 & data$fat_100g < 100 & data$saturated.fat_100g < 100 & data$fiber_100g <100 & data$salt_100g < 100 & data$sodium_100g <100 & data$vitamin.a_100g < 100 & data$vitamin.c_100g < 100 & data$calcium_100g < 10, ]
+cleaned_data = data[ (data$vitamin.c_100g<100) & (data$energy.kcal_100g<1000) & (data$proteins_100g<100) & (data$sugars_100g < 80) & (data$fat_100g < 100) & (data$saturated.fat_100g < 100)  & (data$fiber_100g <100) & (data$salt_100g < 100) & (data$sodium_100g <100) & (data$vitamin.a_100g < 100) & (data$calcium_100g < 10), ]
 ```
 
 ```{r}
- 
-plot(as.dendrogram(agnes(data[,c(3:10,12:14)],metric="euclidean",stand=TRUE,method="single")),main="Single linkage")
+agnes(data[c(1:10000),c(3:10,12:14)],metric="euclidean",stand=TRUE,method="single")
 ```
-
 

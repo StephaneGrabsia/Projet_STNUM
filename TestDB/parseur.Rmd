@@ -16,11 +16,12 @@ library(tidyr)
 
 data <-read.csv("data_project.csv", sep=";")
 print(data)
+set.seed(10)
 ```
 
 Matrice de corrélation
 ```{r}
-cleaned_data = data[ (data$vitamin.c_100g<100) & (data$energy.kcal_100g<1000) & (data$proteins_100g<100) & (data$sugars_100g < 80) & (data$fat_100g < 100) & (data$saturated.fat_100g < 100) & (data$fiber_100g <100) & (data$salt_100g < 100) & (data$sodium_100g <100) & (data$vitamin.a_100g < 100) & (data$calcium_100g < 10), ]
+cleaned_data = data[ (data$vitamin.c_100g<100) & (data$energy.kcal_100g<1000) & (data$proteins_100g<100) & (data$sugars_100g < 80) & (data$fat_100g < 100) & (data$saturated.fat_100g < 100) & (data$fiber_100g <100) & (data$salt_100g < 100) & (data$sodium_100g <20) & (data$vitamin.a_100g < 0.12) & (data$calcium_100g < 10), ]
 
 #ggpairs(data[c(3:13)])
 gradient_col <- ggplot2::scale_fill_gradient2(
@@ -131,16 +132,25 @@ Projection de l'ACP
 ```{r}
 plot.PCA(out_acp,shadow=TRUE,cex=2,axes=c(1,2),choix="ind",label="none",new.plot=TRUE, title="Projection des individus")
 ```
-
-
-
-Clustering
-
+Data réduites pour tourner
 ```{r}
-cah_ward <- agnes(cleaned_data[c(1:200),c(3:10,12:14)],metric="euclidean",stand=TRUE,method="ward")
+vec <- sample(x = 1:nrow(cleaned_data), size = 2000)
+data_for_cluster <- cleaned_data[c(vec),c(3:10,12:14)]
+```
+
+CAH
+```{r}
+fviz_nbclust(data_for_cluster, FUNcluster = hcut, method = "silhouette",hc_method = "average", hc_metric = "euclidean", stand = TRUE)
+library(NbClust)
+NbClust(data_for_cluster, distance = "euclidean", method = "average")
+```
+
+Dendogramme
+```{r}
+cah_ward <- agnes(data_for_cluster,metric="euclidean",stand=TRUE,method="ward")
 plot(as.dendrogram(cah_ward),main="Ward")
 
-ei <- data.frame(k=2:dim(cleaned_data[c(1:200),c(3:10,12:14)])[1],height=sort(cah_ward$height,decreasing=TRUE))
+ei <- data.frame(k=2:dim(data_for_cluster)[1],height=sort(cah_ward$height,decreasing=TRUE))
 
 ggplot(data=ei,aes(x=k,y=height))+
   geom_bar(stat="identity",fill="steelblue")+
@@ -148,7 +158,16 @@ ggplot(data=ei,aes(x=k,y=height))+
   ggtitle("Gain d'inertie inter-classes lors du passage de (k-1) à k classes")+
   xlab("k")+
   ylab("Indice d'aggrégation")+
-  scale_x_continuous(breaks=2:dim(cleaned_data[c(1:200),c(3:10,12:14)])[1])
+  scale_x_continuous(breaks=2:dim(data_for_cluster)[1])
+```
+
+Dendogramme avec classes
+```{r}
+plot(as.dendrogram(cah_ward),main="Ward")
+rect.hclust(cah_ward,k=5)
+
+cluster_ward_2cl <- data.frame(nom=rownames(data_for_cluster),classe=cutree(cah_ward,k=5))
+cluster_ward_2cl[order(cluster_ward_2cl$classe),]
 ```
 
 Kmeans
@@ -157,8 +176,8 @@ library(FactoMineR)
 library(factoextra)
 library(cluster)
 data_nor <- scale(cleaned_data[,c(3:10,12:14)],center=TRUE,scale=TRUE)
-cluster_kmeans_3cl <- kmeans(data_nor,centers=5,nstart=20)
-print(cluster_kmeans_3cl)
-fviz_cluster(cluster_kmeans_3cl, cleaned_data[,c(3:10,12:14)],palette = c("#009999", "#0000FF", "#FF2400", "#FF6EC7", "#6D071A"))
+cluster_kmeans_5cl <- kmeans(data_nor,centers=5,nstart=20)
+print(cluster_kmeans_5cl)
+fviz_cluster(cluster_kmeans_5cl, cleaned_data[,c(3:10,12:14)],palette = c("#009999", "#0000FF", "#FF2400", "#FF6EC7", "#6D071A"))
 ```
 

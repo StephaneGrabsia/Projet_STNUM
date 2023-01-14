@@ -13,6 +13,9 @@ library(factoextra)
 library(heatmaply)
 library(dplyr)
 library(tidyr)
+library(ade4)
+library(scales)
+library(reshape2)
 
 data <-read.csv("data_project.csv", sep=";")
 print(data)
@@ -136,6 +139,7 @@ Data réduites pour tourner
 ```{r}
 vec <- sample(x = 1:nrow(cleaned_data), size = 2000)
 data_for_cluster <- cleaned_data[c(vec),c(3:10,12:14)]
+data_for_cluster_grade <- cleaned_data[c(vec),c(3:10,12:15)]
 ```
 
 CAH
@@ -166,9 +170,46 @@ Dendogramme avec classes
 plot(as.dendrogram(cah_ward),main="Ward")
 rect.hclust(cah_ward,k=5)
 
-cluster_ward_2cl <- data.frame(nom=rownames(data_for_cluster),classe=cutree(cah_ward,k=5))
-cluster_ward_2cl[order(cluster_ward_2cl$classe),]
+cluster_ward_5cl <- data.frame(nom=rownames(data_for_cluster),classe=cutree(cah_ward,k=5))
+cluster_ward_5cl[order(cluster_ward_5cl$classe),]
 ```
+```{r}
+a = data_for_cluster_grade %>%
+  mutate(Cluster = cluster_ward_5cl$classe)
+
+cluster1 = a[a$Cluster == 1,]
+cluster2 = a[a$Cluster == 2,]
+cluster3 = a[a$Cluster == 3,]
+cluster4 = a[a$Cluster == 4,]
+cluster5 = a[a$Cluster == 5,]
+
+mytable <- table(cluster5$nutriscore_grade)
+options(digits=4)
+percentage <- round(100*mytable/sum(mytable),digits = 2)
+
+lbls <- paste(names(mytable), "\n", percentage, "%", sep="")
+pie(mytable, labels = lbls,
+   main="Nutriscore grade repartition")
+
+```
+
+Analyse
+```{r}
+clusProfile <- aggregate(data_for_cluster[,2:11],
+                         by = list(cluster_ward_5cl$classe),
+                         mean)
+
+colnames(clusProfile)[ 1] <- "CLUSTER"
+clusLong <- melt(clusProfile, id.vars = "CLUSTER")
+
+ggplot(clusLong) +
+  geom_bar(aes(x = variable, y = value, fill = factor(CLUSTER)),
+           stat = "identity") +
+  scale_fill_grey() +
+  facet_wrap(~ CLUSTER) +
+  coord_flip() + theme_bw()
+```
+
 
 Kmeans
 ```{r}
@@ -179,5 +220,13 @@ data_nor <- scale(cleaned_data[,c(3:10,12:14)],center=TRUE,scale=TRUE)
 cluster_kmeans_5cl <- kmeans(data_nor,centers=5,nstart=20)
 print(cluster_kmeans_5cl)
 fviz_cluster(cluster_kmeans_5cl, cleaned_data[,c(3:10,12:14)],palette = c("#009999", "#0000FF", "#FF2400", "#FF6EC7", "#6D071A"))
+```
+
+
+
+Comparaison
+
+```{r}
+table(cluster_ward_5cl$classe,cluster_kmeans_5cl$cluster)
 ```
 
